@@ -62,9 +62,15 @@ class FuzzEncodingsGenerator(IIntruderPayloadGenerator):
 
     def __iter__(self):
         self.log('g.iter initialized with ' + str(self._baseValue))
+
         def key(name):
             key.count = getattr(key, 'count', 0) + 1
             return '{0:03}'.format(key.count)
+
+        def num2aschex(val):
+            # 0..15 -> '30'..'66' (hex value in ascii)
+            return str(30 + val) if val < 10 else str(60 + val - 9)
+
         # Ideally we'd use basic transformations and find a nice way to
         # mix/chain/stack them for more flexibility.
         #
@@ -72,7 +78,10 @@ class FuzzEncodingsGenerator(IIntruderPayloadGenerator):
         # or smarter (\u0041 -> %5cu0041 i.e. not all chars).
         transforms = {
             'url' :             lambda val: ''.join(['%{0:02x}'.format(ord(c)) for c in val]),
-            'urlpct' :          lambda val: ''.join(['%%{0:02x}'.format(ord(c)) for c in val]),
+            'urlnib' :          lambda val: ''.join(['%%{0}%{1}'.format(*map(num2aschex, divmod(ord(c), 16))) for c in val]),
+            'url+url' :         lambda val: ''.join(['%25{0:02x}'.format(ord(c)) for c in val]),
+            'url+urlnib1' :     lambda val: ''.join(['%25%{0}%{1}'.format(*map(num2aschex, divmod(ord(c), 16))) for c in val]),
+            'url+urlnib2' :     lambda val: ''.join(['%%25{0}%25{1}'.format(*map(num2aschex, divmod(ord(c), 16))) for c in val]),
             'urluni' :          lambda val: ''.join(['%u{0:04x}'.format(ord(c)) for c in val]),
             'qprint' :          lambda val: ''.join(['={0:02x}'.format(ord(c)) for c in val]),
             'hexexpr' :         lambda val: ''.join(['0x{0:02x}'.format(ord(c)) for c in val]),
@@ -93,13 +102,17 @@ class FuzzEncodingsGenerator(IIntruderPayloadGenerator):
             'cdata+url' :       lambda val: '<![CDATA[' + ''.join(['%{0:02x}'.format(ord(c)) for c in val]) + ']]>',
             'cdata+urluni' :    lambda val: '<![CDATA[' + ''.join(['%u{0:04x}'.format(ord(c)) for c in val]) + ']]>',
             'cdata+jsuni' :     lambda val: '<![CDATA[' + ''.join(['\\u{0:04x}'.format(ord(c)) for c in val]) + ']]>',
-            'oct' :             lambda val: ''.join(['\\{0:03o};'.format(ord(c)) for c in val]),
-            'octesc' :          lambda val: ''.join(['\\\\{0:03o};'.format(ord(c)) for c in val]),
-            'url+url' :         lambda val: ''.join(['%25{0:02x};'.format(ord(c)) for c in val]),
-            'chrplus' :         lambda val: ''.join(['+chr({0})+'.format(ord(c)) for c in val]),
-            'chrdot' :          lambda val: ''.join(['.chr({0}).'.format(ord(c)) for c in val]),
+            'oct' :             lambda val: ''.join(['\\{0:03o}'.format(ord(c)) for c in val]),
+            'octesc' :          lambda val: ''.join(['\\\\{0:03o}'.format(ord(c)) for c in val]),
+            'chrplus' :         lambda val: '+'.join(['chr({0})'.format(ord(c)) for c in val]),
+            'chrplusq' :        lambda val: "'+" + '+'.join(['chr({0})'.format(ord(c)) for c in val]) + "+'",
+            'chrplusqq' :       lambda val: '"+' + '+'.join(['chr({0})'.format(ord(c)) for c in val]) + '+"',
+            'chrdot' :          lambda val: '.'.join(['chr({0})'.format(ord(c)) for c in val]),
+            'chrdotq' :         lambda val: "'." + '.'.join(['chr({0})'.format(ord(c)) for c in val]) + ".'",
+            'chrdotqq' :        lambda val: '".' + '.'.join(['chr({0})'.format(ord(c)) for c in val]) + '."',
             key('str') :        lambda val: '"+"' + val + '"+"',
             key('str') :        lambda val: "'+'" + val + "'+'",
+            key('str') :        lambda val: "'||'" + val + "'||'",
             key('str') :        lambda val: '"' + val + '"',
             key('str') :        lambda val: "'" + val + "'",
             key('str') :        lambda val: '`' + val + '`',
