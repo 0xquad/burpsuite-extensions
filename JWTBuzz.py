@@ -92,6 +92,7 @@ class BurpExtender(IBurpExtender, IExtensionStateListener, IIntruderPayloadGener
 
 
 # JWT helper functions
+# TODO: Implement crypto and signature verification and attacks
 
 def ub64d(enc):
     padding = len(enc) % 4
