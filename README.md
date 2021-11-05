@@ -20,3 +20,7 @@ How to use:
   are the check digit that is automatically appended to the value).
 
 TODO: Implement as a trivial Hackvertor tag too: e.g. <@_luhn>800<@/_luhn> -> 8003
+
+## JWTBuzz
+
+JWTBuzz is a simple fuzzer for JSON Web Tokens. To use it, go to Intruder and mark the entire JWT in the payload and select the extension for the payload generator. It will try modifying the fields in the headers and various other attacks. Signature verification is not yet implemented.
