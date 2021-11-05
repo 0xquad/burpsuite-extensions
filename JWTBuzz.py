@@ -154,6 +154,7 @@ def create_jwt_generator(jwt):
     del fake_hdr['typ']; yield mkjwt()
 
     fake_hdr = json.loads(ub64d(hdr)) # reinit
-    if 'kid' in hdr:
+    dec_hdr = json.loads(ub64d(hdr))
+    if 'kid' in dec_hdr:
         for c in fuzz_chars:
-            fake_hdr['kid'] = hdr['kid'] + c; yield mkjwt()
+            fake_hdr['kid'] = dec_hdr['kid'] + c; yield mkjwt()
