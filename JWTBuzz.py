@@ -20,11 +20,6 @@ from burp import IBurpExtender, IExtensionStateListener
 from burp import IIntruderPayloadGenerator, IIntruderPayloadGeneratorFactory
 
 
-# basic tutorial: https://portswigger.net/burp/extender/writing-your-first-burp-suite-extension
-# callbacks ref:
-# https://github.com/PortSwigger/burp-extender-api/blob/master/src/main/java/burp/IBurpExtenderCallbacks.java
-
-
 class BurpExtender(IBurpExtender, IExtensionStateListener, IIntruderPayloadGenerator, IIntruderPayloadGeneratorFactory):
     def registerExtenderCallbacks(self, callbacks):
         self.debug = False  # logging
