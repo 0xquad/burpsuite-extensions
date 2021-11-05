@@ -3,7 +3,9 @@
 # How to use:
 # - TODO...
 #
-# Author: Alexandre Hamelin <alexandre.hamelin gmail.com>
+# Copyright (c) 2021, Alexandre Hamelin <alex@synlabs.co>
+#
+# Distributed under the Apache 2.0 License.
 
 from array import array
 from burp import IBurpExtender, IExtensionStateListener

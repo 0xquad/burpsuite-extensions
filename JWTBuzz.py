@@ -10,7 +10,9 @@
 # it's possible with many modifications). Also, having control on exactly which
 # fields are transformed and hacked is important here.
 #
-# Author: Alexandre Hamelin <alexandre.hamelin gmail.com>
+# Copyright (c) 2021, Alexandre Hamelin <alex@synlabs.co>
+#
+# Distributed under the Apache 2.0 License.
 
 import string
 import base64
@@ -93,6 +95,7 @@ class BurpExtender(IBurpExtender, IExtensionStateListener, IIntruderPayloadGener
 
 # JWT helper functions
 # TODO: Implement crypto and signature verification and attacks
+# TODO: Try fuzzing all claims
 
 def ub64d(enc):
     padding = len(enc) % 4
@@ -118,7 +121,7 @@ def valid_jwt(jwt, verify_sig=False, verify_claims=False):
 
 def create_jwt_generator(jwt):
     if not valid_jwt(jwt):
-        yield jwt
+        yield jwt # return base value as is
         return
 
     hdr, payload, sig = jwt.split('.')
