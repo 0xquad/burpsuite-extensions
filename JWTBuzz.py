@@ -121,11 +121,11 @@ def create_jwt_generator(jwt):
         yield jwt
         return
 
-    EMPTY_PART = 'e30' # encoded '{}'
     hdr, payload, sig = jwt.split('.')
+
     yield hdr + '.' + payload + '.'
     yield jwt + '.'
-    yield 'e30.' + payload + '.' + sig
+    yield 'e30.' + payload + '.' + sig  # 'e30' is encoded '{}'
     yield hdr + '.e30.' + sig
     yield hdr + '..'
 
