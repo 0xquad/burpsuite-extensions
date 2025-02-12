@@ -20,7 +20,7 @@ from burp import IBurpExtender, IExtensionStateListener, IIntruderPayloadProcess
 
 class BurpExtender(IBurpExtender, IExtensionStateListener, IIntruderPayloadProcessor):
     def registerExtenderCallbacks(self, callbacks):
-        callbacks.setExtensionName('LuhnyDigit');
+        callbacks.setExtensionName('LuhnyDigit')
         self._callbacks = callbacks
         self._stdout = callbacks.getStdout()
         self._stderr = callbacks.getStderr()
@@ -28,7 +28,7 @@ class BurpExtender(IBurpExtender, IExtensionStateListener, IIntruderPayloadProce
         self.printOutput = callbacks.printOutput
         self.printError = callbacks.printError
 
-        callbacks.registerExtensionStateListener(self);
+        callbacks.registerExtensionStateListener(self)
         callbacks.registerIntruderPayloadProcessor(self)
 
         return
@@ -51,7 +51,7 @@ class BurpExtender(IBurpExtender, IExtensionStateListener, IIntruderPayloadProce
             return array('b', payload + str(calculate_luhn_digit(payload)))
         return None
 
-        
+
 def calculate_luhn_digit(number):
     """number: a numeric string without any punctuation
     returns: an integer between 0 and 9 (int type)
